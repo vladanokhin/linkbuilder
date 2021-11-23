@@ -1,12 +1,12 @@
 import argparse
 from text import Text
 from pathlib import Path
-from ss import SemanticSimilarity
+from semantic import SemanticSimilarity
 
 
 def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--list', type=str, required=True,
+    parser.add_argument('-l', '--list', type=str, required=False,
         help="Путь к списку с доменами, обезательный. (path/to/list.txt)"
     )     
 
@@ -34,14 +34,14 @@ def main():
     # Сематическое сравнение текстов между собой
     semanticSimilarity.textComparison(listTexts)
 
-    print(semanticSimilarity.getRelavantPages(3))
+    print(semanticSimilarity.getRelavantPages(1))
 
 
 if __name__ == '__main__':
 
     parser = createParser()
     args = parser.parse_args()
-    path_to_list = args.list if args.list else None
+    path_to_list = args.list if args.list else 'list.txt'
 
     if Path(path_to_list).exists():
         main()

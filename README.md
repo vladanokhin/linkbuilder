@@ -1,7 +1,7 @@
-# Link Builder fo Hugo Sites
+# Link Builder for Hugo Sites
 
 
-## Instalation
+## Installation
 
 1. Create virtual env 
 ```bash
