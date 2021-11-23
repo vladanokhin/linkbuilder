@@ -4,3 +4,4 @@ test.py
 .data.json
 *.txt
 .Trash/
+.DS_Store
