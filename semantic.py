@@ -6,14 +6,14 @@ from sentence_transformers import SentenceTransformer, util
 
 class SemanticSimilarity:
 
-    scoreList: Union[List[int], List[None]] = []
+    scoreList: List[int] = []
     __isSortedList: bool = False
     __listOfPosts: List[str] = []
 
 
-    def __init__(self, _text: Text) -> None:
+    def __init__(self) -> None:
         self.config = Config()
-        self.model = SentenceTransformer(self.config.getValue('transformersModel'))
+        self.model = SentenceTransformer(self.config.getValue('TRANSFORMERS_MODEL'))
     
 
     def __sortListBySS(self, scoreList: List[int]) -> List[int]:
@@ -27,7 +27,7 @@ class SemanticSimilarity:
         )
 
 
-    def textComparison(self, list: List[str]) -> Union[List[int], List[None]]:
+    def textComparison(self, list: List[str]) -> List[int]:
         """
         Вычесляет SS для текстов и возращает отсортированный 
         список по SS
@@ -38,7 +38,7 @@ class SemanticSimilarity:
         return self.getScoreList()
 
 
-    def getScoreList(self) -> Union[List[int], List[None]]:
+    def getScoreList(self) -> List[int]:
         """
         Возращает отсортированный список по SS
         """
@@ -49,7 +49,7 @@ class SemanticSimilarity:
         return self.scoreList
 
 
-    def getRelavantPages(self, id: int) -> Union[List[int], List[None]]:
+    def getRelavantPages(self, id: int) -> List[int]:
         """
         Выбирает страницы с самым высоким SS среди других доменов
         :param id: индетификатор поста  
@@ -59,7 +59,7 @@ class SemanticSimilarity:
                 'List of posts not found. Before using this method you need compare text "textComparison()"'
             )
 
-        countLinks = self.config.getValue('numberLinkToAdd', 5)
+        countLinks = self.config.getValue('number_link_to_add', 5)
         currentDomain = self.__listOfPosts[id]['domain']
         listOfUsedDomains = []
         ressult = []
@@ -80,12 +80,12 @@ class SemanticSimilarity:
 
             ressult.append(post)
             listOfUsedDomains.append(postData['domain'])
-            
+
         return self.__sortListBySS(ressult)[:countLinks]
 
-    
-    def getListOfPosts(self) -> Union[List[str], List[None]]:
-        """
-        Возращает ранее собранный список постов с сайтов
-        """
-        return self.__listOfPosts
+
+    # def getListOfPosts(self) -> List[str]:
+    #     """
+    #     Возращает ранее собранный список постов с сайтов
+    #     """
+    #     return self.__listOfPosts

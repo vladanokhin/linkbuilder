@@ -1,4 +1,6 @@
+import json
 import argparse
+from hugo import Hugo
 from text import Text
 from pathlib import Path
 from semantic import SemanticSimilarity
@@ -12,33 +14,54 @@ def createParser():
 
     return parser
 
+
 def main():
     textSites = Text()
-    semanticSimilarity = SemanticSimilarity(textSites)
+    semanticSimilarity = SemanticSimilarity()
+    hugo = Hugo()
 
     with open(path_to_list) as f:
         lines = f.readlines()
     
     # Собираем текста со всех сайтов
-    listTexts = list()
+    listOfTexts = list()
     for line in lines:
         site = line.strip()
         textFromSite = textSites.getTextFromSite(site)
-
         if textFromSite:
-            listTexts.extend(textFromSite)
-    
-    # with open('.data.json', 'w', encoding='utf-8') as output:    
-    #     output.write(json.dumps(listTexts, indent=4, sort_keys=True))
+            listOfTexts.extend(textFromSite)
+
+    with open('.data.json', 'w', encoding='utf-8') as output:    
+        output.write(json.dumps(listOfTexts, indent=4, sort_keys=True))
 
     # Сематическое сравнение текстов между собой
-    semanticSimilarity.textComparison(listTexts)
+    semanticSimilarity.textComparison(listOfTexts)
 
-    print(semanticSimilarity.getRelavantPages(1))
+    for id in range(0, len(listOfTexts)):
+        scoreList = semanticSimilarity.getRelavantPages(id)
+        if not scoreList:
+            continue
+
+        sourcePostData = listOfTexts[id]
+        listOfRelevantPosts = []
+        # Собираем все релавантные посты,
+        for relevantPost in scoreList:
+            relevantPostData = listOfTexts[relevantPost[2]]
+
+            listOfRelevantPosts.append([
+                relevantPostData['title'], 
+                hugo.getPostPermaLink(relevantPostData['domain'], 
+                                      relevantPostData['filePath'])
+            ])
+        
+        print(listOfRelevantPosts)
+        breakpoint()
+        # textSites.addLinksToPost(sourcePostData['filepath'],
+        #                          listOfRelevantPosts)
+
 
 
 if __name__ == '__main__':
-
     parser = createParser()
     args = parser.parse_args()
     path_to_list = args.list if args.list else 'list.txt'

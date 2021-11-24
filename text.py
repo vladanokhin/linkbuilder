@@ -12,13 +12,13 @@ class Text:
         self.config = Config()
 
 
-    def getTextFromSite(self, site: str) -> Union[List[str], List[None]]:
+    def getTextFromSite(self, site: str) -> List[str]:
         """
         Получить список всех постов с сайта
         :param site: название сайта
         :return список [{domain, filePath, content}] 
         """
-        pathToSite = Path(self.config.getValue('pathToSites', '/'), site)
+        pathToSite = Path(self.config.getValue('path_to_sites', '/'), site)
 
         if not os.path.exists(Path(pathToSite, 'content')):
             raise FileNotFoundError(
@@ -31,14 +31,13 @@ class Text:
                 if '_index.md' not in file:
                     pathToFile = Path(filepath,file)
                     _frontmatter = frontmatter.load(pathToFile)
-                    #TODO check
                     if 'title' not in _frontmatter:
                         continue
 
                     data = {
                         'domain': site,
                         'filePath': str(pathToFile),
-                        # 'title': _frontmatter['title'],
+                        'title': _frontmatter['title'],
                         'content': re.sub(r'\!\[.*\]\(.*\)', '', _frontmatter.content)
                                     .replace('#', '')
                                     .strip()
@@ -47,3 +46,7 @@ class Text:
                     texts.append(data)
         
         return texts
+    
+
+    def addLinksToPost(self):
+        pass
