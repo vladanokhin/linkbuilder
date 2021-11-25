@@ -16,18 +16,27 @@ class Hugo:
 
 
     def getPostPermaLink(self, domain: str, pathToPost: str) -> str:
+        """
+        Возращает web-ссылку на пост, по локальноку пути на пост
+        :param domain: название сайта
+        :param pathToPost: путь к посту в файловой системе
+        """
         if not domain in self.__sitesPostsList.keys():
             self.__parseDomainLinks(domain)
 
         return self.__sitesPostsList[domain][pathToPost]   
 
 
-    def __parseDomainLinks(self, domain: str):
+    def __parseDomainLinks(self, domain: str) -> bool:
+        """
+        Парсит и сохраняет все web-ссылки сайта
+        :param domain: название сайта
+        """
         pathToSite = Path(self.pathToSites, domain)
         self.__sitesPostsList.update({domain: {}})
 
         if not Path(pathToSite).exists():
-            return ''
+            return False
 
         os.chdir(pathToSite)
         _resText = check_output(['hugo', 'list', 'all']).decode('utf-8')
@@ -42,3 +51,6 @@ class Hugo:
                               line[1:]))
 
             self.__sitesPostsList[domain][pathToPost] = url[0]
+
+        os.chdir(self.config.getValue('project_dir'))
+        return True

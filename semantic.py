@@ -19,6 +19,7 @@ class SemanticSimilarity:
     def __sortListBySS(self, scoreList: List[int]) -> List[int]:
         """
         Сортирует массив по SS
+        :param scoreList: список с данными сравнений текстов
         """
         return sorted(
             scoreList,
@@ -31,6 +32,7 @@ class SemanticSimilarity:
         """
         Вычесляет SS для текстов и возращает отсортированный 
         список по SS
+        :param list: список с текстами
         """
         self.__listOfPosts = list
         self.scoreList = util.paraphrase_mining(self.model, [i['content'] for i in list])
@@ -71,7 +73,7 @@ class SemanticSimilarity:
             [post for post in self.getScoreList() if post[1] == id]
         ))
 
-        # Выбираем по одному самому релевантному с домена
+        # Выбираем по одному самому релевантному тексту с домена
         for post in scoreList:
             relevantPostId = post[2]
             postData = self.__listOfPosts[relevantPostId]
@@ -82,10 +84,3 @@ class SemanticSimilarity:
             listOfUsedDomains.append(postData['domain'])
 
         return self.__sortListBySS(ressult)[:countLinks]
-
-
-    # def getListOfPosts(self) -> List[str]:
-    #     """
-    #     Возращает ранее собранный список постов с сайтов
-    #     """
-    #     return self.__listOfPosts

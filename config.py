@@ -11,12 +11,19 @@ class Config():
 
     PROJECT_DIR = Path.cwd()
     
-
+    PHRASES_FOR_LINKS = [
+        'Read More',
+        'Also',
+        'More',
+        'More information',
+        'Additional information',
+    ]
 
     def getValue(self, name: str, default: Union[str, int, None] = None) -> Union[str, int, None]:
         """
         Возращает значени с конфига
         :param name: названия значения
+        :param default: значения которое вернется, если искомого значения нету
         """
         lowerName = name.lower()
         upperName = name.upper()

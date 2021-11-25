@@ -1,5 +1,6 @@
 import json
 import argparse
+import os
 from hugo import Hugo
 from text import Text
 from pathlib import Path
@@ -43,8 +44,9 @@ def main():
             continue
 
         sourcePostData = listOfTexts[id]
+        # Собираем все релавантные текста и ссылки, 
+        # для исходного поста 
         listOfRelevantPosts = []
-        # Собираем все релавантные посты,
         for relevantPost in scoreList:
             relevantPostData = listOfTexts[relevantPost[2]]
 
@@ -54,10 +56,8 @@ def main():
                                       relevantPostData['filePath'])
             ])
         
-        print(listOfRelevantPosts)
-        breakpoint()
-        # textSites.addLinksToPost(sourcePostData['filepath'],
-        #                          listOfRelevantPosts)
+        textSites.addLinksToPost(sourcePostData['filepath'],
+                                 listOfRelevantPosts)
 
 
 
@@ -67,6 +67,7 @@ if __name__ == '__main__':
     path_to_list = args.list if args.list else 'list.txt'
 
     if Path(path_to_list).exists():
+        os.environ['TOKENIZERS_PARALLELISM'] = 'true'
         main()
     else:
         raise FileNotFoundError(
