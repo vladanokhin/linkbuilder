@@ -1,3 +1,4 @@
+from random import randint
 from text import Text
 from config import Config
 from typing import List, Union
@@ -83,4 +84,10 @@ class SemanticSimilarity:
             ressult.append(post)
             listOfUsedDomains.append(postData['domain'])
 
-        return self.__sortListBySS(ressult)[:countLinks]
+        if isinstance(countLinks, tuple):
+            a,b = countLinks
+            return self.__sortListBySS(ressult)[:randint(a,b)]
+        elif isinstance(countLinks, int):
+            return self.__sortListBySS(ressult)[:countLinks]
+        else:
+            return self.__sortListBySS(ressult)

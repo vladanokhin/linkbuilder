@@ -1,25 +1,37 @@
 from pathlib import Path
 from typing import Union, Iterable
+import random
 
 class Config():
+
+    # Названия модели
+    TRANSFORMERS_MODEL = 'all-MiniLM-L6-v2'
+
+    # Путь где лежать сайты
+    PATH_TO_SITES = Path(Path.home(), 'Sites')  
     
-    TRANSFORMERS_MODEL = 'all-MiniLM-L6-v2'     # Названия модели
+    # Количество ссылок для добавления к исходной страници
+    # Можно задавать в виде числа:
+    # >>>  NUMBER_LINK_TO_ADD = 5
+    # Или в виде диапазона, тогда будет добавлено
+    # от 3 ссылок до 7, значения выбираеться рандомно:
+    # >>> NUMBER_LINK_TO_ADD = (3,7)
+    NUMBER_LINK_TO_ADD = (3,7)                
 
-    PATH_TO_SITES = Path(Path.home(), 'Sites')  # Путь где лежать сайты
-
-    NUMBER_LINK_TO_ADD = 3                      # Количество ссылок для добавления к исходной страници
-
+    # Путь приложения
     PROJECT_DIR = Path.cwd()
     
+    # Фразы для подставки перед ссылками
     PHRASES_FOR_LINKS = [
         'Read More',
         'Also',
         'More',
         'More information',
-        'Additional information',
+        'Additional information'
     ]
 
-    def getValue(self, name: str, default: Union[str, int, None] = None) -> Union[str, int, None]:
+
+    def getValue(self, name: str, default: Union[str, int, tuple] = None) -> Union[str, int, tuple]:
         """
         Возращает значени с конфига
         :param name: названия значения

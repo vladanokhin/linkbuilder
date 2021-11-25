@@ -5,11 +5,13 @@ from hugo import Hugo
 from text import Text
 from pathlib import Path
 from semantic import SemanticSimilarity
+from tqdm import tqdm
+from tabulate import tabulate
 
 
 def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--list', type=str, required=False,
+    parser.add_argument('-l', '--list', type=str, required=True,
         help="Путь к списку с доменами, обезательный. (path/to/list.txt)"
     )     
 
@@ -28,22 +30,22 @@ def main():
     listOfTexts = list()
     for line in lines:
         site = line.strip()
-        textFromSite = textSites.getTextFromSite(site)
+        textFromSite = textSites.getAllTextFromSite(site)
         if textFromSite:
             listOfTexts.extend(textFromSite)
 
-    with open('.data.json', 'w', encoding='utf-8') as output:    
-        output.write(json.dumps(listOfTexts, indent=4, sort_keys=True))
-
     # Сематическое сравнение текстов между собой
     semanticSimilarity.textComparison(listOfTexts)
-
+    ressultData = {}
     for id in range(0, len(listOfTexts)):
         scoreList = semanticSimilarity.getRelavantPages(id)
         if not scoreList:
             continue
-
+    
         sourcePostData = listOfTexts[id]
+        if not sourcePostData['domain'] in ressultData.keys():
+            ressultData[sourcePostData['domain']] = 0
+
         # Собираем все релавантные текста и ссылки, 
         # для исходного поста 
         listOfRelevantPosts = []
@@ -55,16 +57,24 @@ def main():
                 hugo.getPostPermaLink(relevantPostData['domain'], 
                                       relevantPostData['filePath'])
             ])
-        
-        textSites.addLinksToPost(sourcePostData['filepath'],
-                                 listOfRelevantPosts)
 
+        ressultWriting = textSites.writeLinksToPost(sourcePostData['filePath'],
+                                   listOfRelevantPosts)
 
+        # Подсчет добленных ссылок для таблици
+        if ressultWriting:
+            ressultData[sourcePostData['domain']] += len(listOfRelevantPosts)
+    
+    # Вывод таблици
+    print('\n')
+    print(tabulate(ressultData.items(), ['Domain', 'Added Relevant Links'], 
+                   tablefmt="github"))
+    print('\n')
 
 if __name__ == '__main__':
     parser = createParser()
     args = parser.parse_args()
-    path_to_list = args.list if args.list else 'list.txt'
+    path_to_list = args.list if args.list else '/'
 
     if Path(path_to_list).exists():
         os.environ['TOKENIZERS_PARALLELISM'] = 'true'
