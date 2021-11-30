@@ -3,14 +3,18 @@ import re
 import frontmatter
 from pathlib import Path
 from config import Config
-from typing import List
-from random import choice, randint
+from typing import List, Tuple
+from random import choice, randint, sample
 
 
 class Text:
 
+    listOfParagraphs: List[str] = []
+    
+
     def __init__(self) -> None:
         self.config = Config()
+        self.listOfPhrases = self.config.getValue('PHRASES_FOR_LINKS', ['More'])
 
 
     def getAllTextFromSite(self, site: str) -> List[str]:
@@ -62,28 +66,88 @@ class Text:
            not Path(pathToSourcePost).exists():
             return False
         
-        randPhrase = self.__getRandomPhraseForLinks()
         post = frontmatter.load(pathToSourcePost)
-        textPost = post.content
-        listText = re.split(r'\n(?=#)', textPost)
-        randPosition = choice(range(len(listText)))
-
-        stringOfLinks = [f'[{title.title()}]({link})\n' for title, link in listOfLinksAndTitles]
-        stringOfLinks.insert(0, '#' * randint(1,3) + f' {randPhrase}:')
-        stringOfLinks = '\n'.join(stringOfLinks)
-        listText[randPosition] += '\n' + stringOfLinks
+        listOfLinks = [f'[{title.title()}]({link})\n' for title, link in listOfLinksAndTitles]
         
-        post.content = '\n'.join(listText)
+        while listOfLinks:
+            self.listOfParagraphs = re.split(r'\n(?=#)', post.content)
+            statusPosition, randPosition = self.__getPostionForInsertLinks(pathToSourcePost)
+
+            getCount = randint(1, len(listOfLinks))
+            curentlistOfLinks = sample(listOfLinks, getCount)
+            listOfLinks = [link for link in listOfLinks if not link in curentlistOfLinks]
+            stringOfLinks = '\n'.join(curentlistOfLinks)
+
+            if statusPosition == 'NotFound':
+                randPhrase = choice(self.listOfPhrases)
+                curentlistOfLinks.insert(0, f'### {randPhrase}:')
+                stringOfLinks = '\n'.join(curentlistOfLinks)
+                self.listOfParagraphs[randPosition] += '\n' + stringOfLinks + '\n'
+
+            elif statusPosition == 'Before':
+                self.listOfParagraphs[randPosition] = '\n' + stringOfLinks + '\n' + self.listOfParagraphs[randPosition]
+
+            elif statusPosition == 'After':
+                self.listOfParagraphs[randPosition] += '\n' + stringOfLinks + '\n'
+
+            elif statusPosition == 'Warning':
+                continue
+            
+            post.content = '\n'.join(self.listOfParagraphs)
+        
         frontmatter.dump(post, pathToSourcePost)
 
         return True
 
-
-    def __getRandomPhraseForLinks(self) -> str:
-        """
-        Возращет из конфига `(PHRASES_FOR_LINKS)` одну рандомную фразу для
-        ссылок
-        """
-        listOfPhrases = self.config.getValue('phrases_for_links', ['More'])
+    
+    def __getPostionForInsertLinks(self, pathToSourcePost) -> Tuple[str, int]:
+        lenOfList = len(self.listOfParagraphs)
+        if lenOfList <= 1:
+            return ('Warning', -1)
         
-        return choice(listOfPhrases)
+        randPosition = randint(1, lenOfList - 1)
+
+        if randPosition + 1 > lenOfList - 1:
+            randPosition -= 1
+
+        
+        prevHead, currentHead, nextHead = self.__getHeaderFromLines(
+                                                        self.listOfParagraphs[randPosition - 1],
+                                                        self.listOfParagraphs[randPosition],
+                                                        self.listOfParagraphs[randPosition + 1]
+                                                    )
+        if prevHead in self.listOfPhrases and not\
+           currentHead in self.listOfPhrases:
+            return('Before', randPosition)
+
+        elif currentHead in self.listOfPhrases:
+            return('After', randPosition)
+
+        elif currentHead not in self.listOfPhrases and \
+             nextHead in self.listOfPhrases:
+             return('After', randPosition + 1)
+        elif currentHead not in self.listOfPhrases and \
+             prevHead in self.listOfPhrases:
+                return('Before', randPosition)
+        elif (prevHead and currentHead and nextHead) not in self.listOfPhrases:
+            return('NotFound', randPosition)
+        else:
+             return('Before', randPosition)
+             
+
+
+
+    def __getHeaderFromLines(self, *lines: str) -> List[str]:
+        ressult = []
+        if  lines:
+            for line in lines:
+                line = re.search(r'#*.*:$', line, re.MULTILINE)
+                if line:
+                    ressult.append(line.group(0)
+                                        .replace('#', '')
+                                        .replace(':', '')
+                                        .strip()
+                                )
+                else:
+                    ressult.append('')
+        return ressult

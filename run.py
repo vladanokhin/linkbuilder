@@ -17,7 +17,7 @@ def createParser():
 
     return parser
 
-
+#TODO Добавить класс App, разбить метод main() на два-три отбдельных метода
 def main():
     textSites = Text()
     semanticSimilarity = SemanticSimilarity()
@@ -39,12 +39,13 @@ def main():
     ressultData = {}
     for id in range(0, len(listOfTexts)):
         scoreList = semanticSimilarity.getRelavantPages(id)
-        if not scoreList:
-            continue
-    
+
         sourcePostData = listOfTexts[id]
         if not sourcePostData['domain'] in ressultData.keys():
             ressultData[sourcePostData['domain']] = 0
+
+        if not scoreList:
+            continue
 
         # Собираем все релавантные текста и ссылки, 
         # для исходного поста 
@@ -66,7 +67,6 @@ def main():
             ressultData[sourcePostData['domain']] += len(listOfRelevantPosts)
     
     # Вывод таблици
-    print('\n')
     print(tabulate(ressultData.items(), ['Domain', 'Added Relevant Links'], 
                    tablefmt="github"))
     print('\n')
