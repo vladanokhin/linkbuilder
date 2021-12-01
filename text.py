@@ -5,7 +5,7 @@ from pathlib import Path
 from config import Config
 from typing import List, Tuple
 from random import choice, randint, sample
-
+from math import floor
 
 class Text:
 
@@ -72,8 +72,8 @@ class Text:
         while listOfLinks:
             self.listOfParagraphs = re.split(r'\n(?=#)', post.content)
             statusPosition, randPosition = self.__getPostionForInsertLinks(pathToSourcePost)
-
-            getCount = randint(1, len(listOfLinks))
+            _c = floor(len(listOfLinks) / 2)
+            getCount = randint(1, _c + 1 if _c <= 0 else _c)
             curentlistOfLinks = sample(listOfLinks, getCount)
             listOfLinks = [link for link in listOfLinks if not link in curentlistOfLinks]
             stringOfLinks = '\n'.join(curentlistOfLinks)
@@ -102,37 +102,47 @@ class Text:
     
     def __getPostionForInsertLinks(self, pathToSourcePost) -> Tuple[str, int]:
         lenOfList = len(self.listOfParagraphs)
+        maxIndex = lenOfList - 1
         if lenOfList <= 1:
             return ('Warning', -1)
         
-        randPosition = randint(1, lenOfList - 1)
+        randPosition = randint(0, maxIndex)
+        prevString = ''
+        currentString = self.listOfParagraphs[randPosition]
+        nextString = ''
 
-        if randPosition + 1 > lenOfList - 1:
-            randPosition -= 1
-
+        if randPosition < maxIndex:
+            nextString = self.listOfParagraphs[randPosition + 1]
         
-        prevHead, currentHead, nextHead = self.__getHeaderFromLines(
-                                                        self.listOfParagraphs[randPosition - 1],
-                                                        self.listOfParagraphs[randPosition],
-                                                        self.listOfParagraphs[randPosition + 1]
-                                                    )
-        if prevHead in self.listOfPhrases and not\
-           currentHead in self.listOfPhrases:
-            return('Before', randPosition)
+        if randPosition > 0:
+            prevString = self.listOfParagraphs[randPosition - 1]
 
-        elif currentHead in self.listOfPhrases:
-            return('After', randPosition)
+        prevHead, currentHead, nextHead = self.__getHeaderFromLines(
+                                                        prevString,
+                                                        currentString,
+                                                        nextString
+                                                    )
+        if prevHead in self.listOfPhrases and not \
+           currentHead in self.listOfPhrases:
+                return('Before', randPosition)
+
+        elif currentHead in self.listOfPhrases and not \
+             prevHead in self.listOfParagraphs:
+                return('After', randPosition)
 
         elif currentHead not in self.listOfPhrases and \
              nextHead in self.listOfPhrases:
-             return('After', randPosition + 1)
+                return('After', randPosition + 1)
+
         elif currentHead not in self.listOfPhrases and \
              prevHead in self.listOfPhrases:
                 return('Before', randPosition)
+
         elif (prevHead and currentHead and nextHead) not in self.listOfPhrases:
             return('NotFound', randPosition)
+
         else:
-             return('Before', randPosition)
+            return('Before', randPosition)
              
 
 
