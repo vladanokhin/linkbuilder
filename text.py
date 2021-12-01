@@ -71,7 +71,7 @@ class Text:
         
         while listOfLinks:
             self.listOfParagraphs = re.split(r'\n(?=#)', post.content)
-            statusPosition, randPosition = self.__getPostionForInsertLinks(pathToSourcePost)
+            statusPosition, randPosition = self.__getPostionForInsertLinks()
             _c = floor(len(listOfLinks) / 2)
             getCount = randint(1, _c + 1 if _c <= 0 else _c)
             curentlistOfLinks = sample(listOfLinks, getCount)
@@ -100,7 +100,7 @@ class Text:
         return True
 
     
-    def __getPostionForInsertLinks(self, pathToSourcePost) -> Tuple[str, int]:
+    def __getPostionForInsertLinks(self) -> Tuple[str, int]:
         lenOfList = len(self.listOfParagraphs)
         maxIndex = lenOfList - 1
         if lenOfList <= 1:
